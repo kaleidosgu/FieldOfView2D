@@ -21,6 +21,7 @@ public class FieldOfView : MonoBehaviour {
 	public float maskCutawayDst = .1f;
 
 	public MeshFilter viewMeshFilter;
+    
 	Mesh viewMesh;
 
 	void Start() {
@@ -65,7 +66,9 @@ public class FieldOfView : MonoBehaviour {
 		List<Vector3> viewPoints = new List<Vector3> ();
 		ViewCastInfo oldViewCast = new ViewCastInfo ();
 		for (int i = 0; i <= stepCount; i++) {
-			float angle = transform.eulerAngles.z - viewAngle / 2 + stepAngleSize * i;
+            float fPlayerAngle = transform.eulerAngles.z;
+
+            float angle = fPlayerAngle - viewAngle / 2 + stepAngleSize * i;
 			ViewCastInfo newViewCast = ViewCast (angle);
 
 			if (i > 0) {
@@ -94,14 +97,18 @@ public class FieldOfView : MonoBehaviour {
 		vertices [0] = Vector3.zero;
 		for (int i = 0; i < vertexCount - 1; i++) {
             Vector3 posCalc = transform.InverseTransformPoint(viewPoints[i]) + Vector3.forward * maskCutawayDst;
-            vertices[i + 1] = posCalc;
+            vertices[i + 1] = new Vector3(posCalc.x, posCalc.y,0);
 
 
             if (i < vertexCount - 2) {
 				triangles [i * 3] = 0;
-				triangles [i * 3 + 1] = i + 1;
-				triangles [i * 3 + 2] = i + 2;
-			}
+                //triangles [i * 3 + 1] = i + 1;
+                //triangles[i * 3 + 2] = i + 2;
+
+                //这里有个坑
+                triangles[i * 3 + 2] = i + 1;
+                triangles[i * 3 + 1] = i + 2;
+            }
 		}
 
 		viewMesh.Clear ();
@@ -151,12 +158,11 @@ public class FieldOfView : MonoBehaviour {
 
 	public Vector3 DirFromAngle(float angleInDegrees, bool angleIsGlobal) {
 		if (!angleIsGlobal) {
-			angleInDegrees += transform.eulerAngles.z;
+			angleInDegrees += transform.eulerAngles.z; 
 		}
         return new Vector3(Mathf.Cos(angleInDegrees * Mathf.Deg2Rad), Mathf.Sin(angleInDegrees * Mathf.Deg2Rad),0);
         //return new Vector3( Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), Mathf.Cos(angleInDegrees * Mathf.Deg2Rad), 0);
     }
-
 	public struct ViewCastInfo {
 		public bool hit;
 		public Vector3 point;
